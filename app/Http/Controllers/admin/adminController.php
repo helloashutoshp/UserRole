@@ -21,9 +21,9 @@ class adminController extends Controller
             'password' => 'required'
         ]);
         if ($validator->passes()) {
-            if (Auth::guard('admin')->attempt(['email' => $request->email, 'password' => $request->password], $request->get('remember'))) {
+            if (Auth::guard('admin')->attempt(['email' => $request->email, 'password' => $request->password])) {
                 $admin = Auth::guard('admin')->user();
-                if ($admin->role == 0) {
+                if ($admin->role_id == 5) {
                     return redirect()->route('admin-dashboard');
                 } else {
                     $admin = Auth::guard('admin')->logout();
@@ -35,5 +35,11 @@ class adminController extends Controller
         } else {
             return redirect()->route('admin-login')->withErrors($validator)->withInput($request->only('email'));
         }
+    }
+
+    public function logout()
+    {
+        $admin = Auth::guard('admin')->logout();
+        return redirect()->route('admin-login');
     }
 }

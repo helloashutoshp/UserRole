@@ -23,9 +23,17 @@ Route::group(['prefix' => '/admin'], function () {
     });
     Route::group(['middleware' => 'admin.auth'], function () {
         Route::get('/dashboard', [homeController::class, 'index'])->name('admin-dashboard');
-        Route::get('/logout', [homeController::class, 'logout'])->name('admin-logout');
-
-    
+        Route::get('/logout', [adminController::class, 'logout'])->name('admin-logout');
+        Route::get('/create-user', [homeController::class, 'createUser'])->name('add.user');
+        Route::post('/create-user', [homeController::class, 'userStore'])->name('store.user');
+        Route::get('/edit-user/{id}', [homeController::class, 'userEdit'])->name('edit.user');
+        Route::post('/update-user', [homeController::class, 'userUpdate'])->name('update.user');
+        Route::get('/delete-user/{id}', [homeController::class, 'destroy'])->name('delete.user');
+        Route::get('/create-role', [homeController::class, 'createRole'])->name('add.role');
+        Route::post('/store-role', [homeController::class, 'roleStore'])->name('store.role');
+        Route::get('/delete-role/{id}', [homeController::class, 'roleDestroy'])->name('delete.role');
+        Route::get('/edit-role/{id}', [homeController::class, 'roleEdit'])->name('edit.role');
+        Route::post('/update-role', [homeController::class, 'roleUpdate'])->name('update.role');
     });
 });
 
