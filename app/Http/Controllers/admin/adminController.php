@@ -23,11 +23,10 @@ class adminController extends Controller
         if ($validator->passes()) {
             if (Auth::guard('admin')->attempt(['email' => $request->email, 'password' => $request->password])) {
                 $admin = Auth::guard('admin')->user();
-                if ($admin->role_id == 5) {
+                if ($admin->id == 11) {
                     return redirect()->route('admin-dashboard');
                 } else {
-                    $admin = Auth::guard('admin')->logout();
-                    return redirect()->route('admin-login')->with('error', 'You are not authorize');
+                    return redirect()->route('admin.posts');
                 }
             } else {
                 return redirect()->route('admin-login')->with('error', 'Invalid email or password');

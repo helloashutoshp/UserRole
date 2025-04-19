@@ -4,6 +4,7 @@ use App\Http\Controllers\admin\adminController;
 use App\Http\Controllers\homeController;
 use App\Http\Controllers\basicController;
 use App\Http\Controllers\front\authController;
+use App\Http\Controllers\postController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,14 +17,16 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Route::get('/', [homeController::class, 'home'])->name('home');
 Route::group(['prefix' => '/admin'], function () {
     Route::group(['middleware' => 'admin.guest'], function () {
         Route::get('/login', [adminController::class, 'index'])->name('admin-login');
         Route::post('/authenticate', [adminController::class, 'authenticate'])->name('admin-authenticate');
     });
-    Route::group(['middleware' => 'admin.auth'], function () {
+
+    Route::group(['middleware' => ['admin.auth', 'role:11']], function () {
         Route::get('/dashboard', [homeController::class, 'index'])->name('admin-dashboard');
-        Route::get('/logout', [adminController::class, 'logout'])->name('admin-logout');
         Route::get('/create-user', [homeController::class, 'createUser'])->name('add.user');
         Route::post('/create-user', [homeController::class, 'userStore'])->name('store.user');
         Route::get('/edit-user/{id}', [homeController::class, 'userEdit'])->name('edit.user');
@@ -35,14 +38,15 @@ Route::group(['prefix' => '/admin'], function () {
         Route::get('/edit-role/{id}', [homeController::class, 'roleEdit'])->name('edit.role');
         Route::post('/update-role', [homeController::class, 'roleUpdate'])->name('update.role');
     });
+
+    Route::group(['middleware' => 'admin.auth'], function () {
+        Route::get('/logout', [adminController::class, 'logout'])->name('admin-logout');
+        Route::get('/posts', [postController::class, 'index'])->name('admin.posts');
+        Route::get('/create-posts', [postController::class, 'create'])->name('create.post');
+        Route::post('/store-posts', [postController::class, 'store'])->name('store.post');
+        Route::get('/posts/status-toggle/{id}', [PostController::class, 'toggleStatus'])->name('post.status.toggle');
+        Route::get('/delete-post/{id}', [PostController::class, 'destroy'])->name('delete.post');
+        Route::get('/edit-post/{id}', [PostController::class, 'edit'])->name('edit.post');
+        Route::post('/update-post', [PostController::class, 'update'])->name('update.post');
+    });
 });
-
-
-
-
-
-
-
-
-
-

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Action;
+use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -10,12 +11,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class homeController extends Controller
 {
     public function index()
     {
-        $users = User::select('users.*', 'role.name as roleName')->leftJoin('role', 'role.id', 'users.role_id')->paginate(10);
+        $users = User::select('users.*', 'role.name as roleName')->leftJoin('role', 'role.id', 'users.role_id')->where('users.id', '!=', 11)->paginate(10);
         $roles  = Role::paginate();
         $allActions = Action::pluck('name', 'id')->toArray();
         foreach ($roles as $role) {
@@ -64,20 +66,24 @@ class homeController extends Controller
 
     public function userEdit($id)
     {
-        $decryptId = Crypt::decrypt($id);
-        $role = Role::get();
-        $user = User::find($decryptId);
-        return view('admin.user.edit', ['user' => $user, 'role' => $role]);
+        try {
+            $decryptId = Crypt::decrypt($id);
+            $role = Role::get();
+            $user = User::find($decryptId);
+            return view('admin.user.edit', ['user' => $user, 'role' => $role]);
+        } catch (DecryptException $e) {
+            return redirect()->route('admin-dashboard')->with('error', 'Invalid URL or user ID.');
+        }
     }
 
     public function userUpdate(Request $req)
     {
+        $user = User::find($req->user_id);
         $validator = Validator::make($req->all(), [
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email,' .  $user->id,
         ]);
         if ($validator->passes()) {
-            $user = User::find($req->user_id);
             $user->name = $req->name;
             $user->email = $req->email;
             $user->password = Hash::make($req->password);
@@ -124,7 +130,7 @@ class homeController extends Controller
     public function roleStore(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'name' => 'required',
+            'name' => 'required|unique:role',
             'action' => 'required',
         ]);
         if ($validator->passes()) {
@@ -167,21 +173,26 @@ class homeController extends Controller
 
     public function roleEdit($id)
     {
-        $decryptId = Crypt::decrypt($id);
-        $role = Role::find($decryptId);
-        $actions = Action::all();
-        return view('admin.role.edit', ['role' => $role, 'actions' => $actions]);
+        try {
+            $decryptId = Crypt::decrypt($id);
+            $role = Role::find($decryptId);
+            $actions = Action::all();
+            return view('admin.role.edit', ['role' => $role, 'actions' => $actions]);
+        } catch (DecryptException $e) {
+            return redirect()->route('admin-dashboard')->with('error', 'Invalid URL or role ID.');
+        }
     }
 
     public function roleUpdate(Request $req)
     {
+        // 'slug' => 'required|unique:cat,slug,' . $category->id . 'id'
+        $id = $req->role_id;
+        $role = Role::find($id);
         $validator = Validator::make($req->all(), [
-            'name' => 'required',
+            'name' => 'required|unique:role,name,' . $role->id,
             'action' => 'required',
         ]);
-        $id = $req->role_id;
         if ($validator->passes()) {
-            $role = Role::find($id);
             $role->name = $req->name;
             $role->action = implode(',', $req->action);
             $role->update();
@@ -197,5 +208,11 @@ class homeController extends Controller
                 'errors' => $validator->errors()
             ]);
         }
+    }
+
+    public function home()
+    {
+        $posts = Post::where('status', 0)->get();
+        return view('welcome', ['posts' => $posts]);
     }
 }
