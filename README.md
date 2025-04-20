@@ -45,4 +45,5 @@ Robert
 Data base : 
 
 Please find the database file at the root directory of the project 'user_role.sql'
- 
+
+Time taken to be complete :  10 hr
