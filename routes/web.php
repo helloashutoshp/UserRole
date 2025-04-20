@@ -42,11 +42,20 @@ Route::group(['prefix' => '/admin'], function () {
     Route::group(['middleware' => 'admin.auth'], function () {
         Route::get('/logout', [adminController::class, 'logout'])->name('admin-logout');
         Route::get('/posts', [postController::class, 'index'])->name('admin.posts');
-        Route::get('/create-posts', [postController::class, 'create'])->name('create.post');
-        Route::post('/store-posts', [postController::class, 'store'])->name('store.post');
-        Route::get('/posts/status-toggle/{id}', [PostController::class, 'toggleStatus'])->name('post.status.toggle');
-        Route::get('/delete-post/{id}', [PostController::class, 'destroy'])->name('delete.post');
-        Route::get('/edit-post/{id}', [PostController::class, 'edit'])->name('edit.post');
-        Route::post('/update-post', [PostController::class, 'update'])->name('update.post');
+
+        Route::middleware('check.action:1')->group(function () {
+            Route::get('/create-posts', [postController::class, 'create'])->name('create.post');
+            Route::post('/store-posts', [postController::class, 'store'])->name('store.post');
+        });
+
+        Route::middleware('check.action:2')->group(function () {
+            Route::get('/edit-post/{id}', [PostController::class, 'edit'])->name('edit.post');
+            Route::post('/update-post', [PostController::class, 'update'])->name('update.post');
+        });
+
+        Route::middleware('check.action:4')->get('/delete-post/{id}', [PostController::class, 'destroy'])->name('delete.post');
+
+        // Add protection to status toggle if needed
+        Route::middleware('check.action:5')->get('/posts/status-toggle/{id}', [PostController::class, 'toggleStatus'])->name('post.status.toggle');
     });
 });

@@ -13,7 +13,7 @@
                 data-accordion="false">
                 <!-- Add icons to the links using the .nav-icon class
                     with font-awesome or any other icon font library -->
-                @if (Auth::guard('admin')->check() && Auth::guard('admin')->user()->role_id == 5)
+                @if (Auth::guard('admin')->check() && Auth::guard('admin')->user()->id == 11)
                     <li class="nav-item">
                         <a href="{{ route('admin-dashboard') }}" class="nav-link">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
